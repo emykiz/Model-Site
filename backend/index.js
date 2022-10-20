@@ -14,10 +14,10 @@ const cors = require('cors')
 
 const { sessionMiddleWare } = require('./middlewares/session')
 const authRoutes = require("./routes/auth");
-// const userRoute = require("./routes/users");
-// const postRoute = require("./route/post");
+const userRoutes = require("./routes/user");
+// const postRoutes = require("./routes/post");
 
-if (process.env.NODE_ENV !== 'production') require('dotenv').config({path: './env'})
+if (process.env.NODE_ENV !== 'production') require('dotenv').config()
 
 app.use(cors())
 app.use(express.json())
@@ -37,5 +37,6 @@ db.on('error', console.error.bind(console, 'Connection error: '))
 app.get('/', (req,res) => res.status(200).json({message: `Welcome to Model Site`}))
 
 app.use('/auth', authRoutes)
+app.use('user', userRoutes)
 
 server.listen(process.env.PORT, () => console.log(`Server running on port ${process.env.PORT}`))
