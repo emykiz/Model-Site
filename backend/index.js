@@ -1,54 +1,41 @@
 const express = require("express");
+const http = require('http')
+const fs = require('fs')
+const path = require("path");
+
 const app = express();
+const server = http.createServer(app)
+
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const multer = require("multer");
+const cors = require('cors')
+
+const { sessionMiddleWare } = require('./middlewares/session')
+const authRoutes = require("./routes/auth");
 // const userRoute = require("./routes/users");
-// const authRoute = require("./routes/auth");
-const postRoute = require("./route/post");
-const router = express.Router();
-const path = require("path");
+// const postRoute = require("./route/post");
 
-dotenv.config();
+require("dotenv").config();
 
-mongoose.connect(
-  process.env.MONGO_URL,
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  () => {
-    console.log("Connected to MongoDB");
-  }
-);
-app.use("/images", express.static(path.join(__dirname, "public/images")));
-
-//middleware
-app.use(express.json());
+app.use(cors())
+app.use(express.json())
+app.use(express.urlencoded({extended: true}))
 app.use(helmet());
 app.use(morgan("common"));
+app.use(sessionMiddleWare)
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/images");
-  },
-  filename: (req, file, cb) => {
-    cb(null, req.body.name);
-  },
-});
+mongoose.connect(process.env.MONGO_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+const db = mongoose.connection
+db.once('open', () => console.log('Successfully connected to MongoDB'))
+db.on('error', console.error.bind(console, 'Connection error: '))
 
-const upload = multer({ storage: storage });
-app.post("/api/upload", upload.single("file"), (req, res) => {
-  try {
-    return res.status(200).json("File uploded successfully");
-  } catch (error) {
-    console.error(error);
-  }
-});
+app.get('/', (req,res) => res.status(200).json({message: `Welcome to Model Site`}))
 
-// app.use("/api/auth", authRoute);
-// app.use("/api/users", userRoute);
-app.use("/api/posts", postRoute);
+app.use('/auth', authRoutes)
 
-app.listen(8800, () => {
-  console.log("Backend server is running!");
-});
+server.listen(process.env.PORT, () => console.log(`Server running on port ${process.env.PORT}`))
