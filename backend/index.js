@@ -17,7 +17,7 @@ const authRoutes = require("./routes/auth");
 // const userRoute = require("./routes/users");
 // const postRoute = require("./route/post");
 
-require("dotenv").config();
+if (process.env.NODE_ENV !== 'production') require('dotenv').config({path: './env'})
 
 app.use(cors())
 app.use(express.json())
